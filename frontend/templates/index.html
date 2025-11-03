@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MealCraft AI Health Check</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+      }
+      .status {
+        padding: 10px 20px;
+        border-radius: 5px;
+        display: inline-block;
+      }
+      .ok {
+        background-color: #ddffdd;
+        color: #006600;
+      }
+      .error {
+        background-color: #ffdddd;
+        color: #660000;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>MealCraft AI - Health Check</h1>
+    <p>Backend Status:
+      <span class="status {{ 'ok' if data.status == 'ok' else 'error' }}">
+        {{ data.status }}
+      </span>
+    </p>
+
+    {% if data.detail %}
+      <p><strong>Details:</strong> {{ data.detail }}</p>
+    {% endif %}
+  </body>
+</html>

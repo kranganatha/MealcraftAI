@@ -406,3 +406,6 @@ credentials/
 *.temp
 temp/
 tmp/
+
+# Environment variables
+.env
