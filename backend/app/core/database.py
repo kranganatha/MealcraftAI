@@ -5,8 +5,9 @@ import os
 # Load environment variables
 load_dotenv()
 
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
-DB_NAME = os.getenv("MONGO_DB_NAME", "mealcraft")
+# Force local MongoDB connection for development
+MONGODB_URI = "mongodb://localhost:27017"
+DB_NAME = "mealcraft"
 
 class DatabaseModule:
     def __init__(self):

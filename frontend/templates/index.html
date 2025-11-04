@@ -31,8 +31,15 @@
       </span>
     </p>
 
+    <form method="POST" action="/query">
+      <label><strong>Ask a question:</strong></label><br>
+      <input type="text" name="question" style="width:60%;" required>
+      <button type="submit">Submit</button>
+    </form>
+
     {% if data.detail %}
-      <p><strong>Details:</strong> {{ data.detail }}</p>
+        <h3>Response:</h3>
+        <p>{{ data.detail }}</p>
     {% endif %}
   </body>
 </html>

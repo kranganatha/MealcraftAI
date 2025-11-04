@@ -14,18 +14,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Lifecycle events
-@app.on_event("startup")
-async def startup_event():
-    await connect_to_mongo()
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    await close_mongo_connection()
+# Lifecycle events removed for stateless operation
 
 # Include routers
 app.include_router(health_router, prefix="/api/v1")
 
+# Replace all authentication behavior with a temporary session-free query handler
+from fastapi import Request
+
+@app.post("/api/v1/query")
+async def handle_query(request: Request):
+    data = await request.json()
+    question = data.get("question", "")
+    # Temporary in-memory response processing
+    return {"answer": f"Temporary response for: '{question}' (no login required)."}
+
 @app.get("/")
 async def root():
-    return {"message": "Welcome to MealCraft AI Backend"}
+    return {"message": "MealCraft AI Backend (stateless mode)"}
