@@ -8,3 +8,4 @@ requests==2.31.0
 passlib[bcrypt]==1.7.4
 bcrypt==4.0.1 --only-binary=:all:
 cryptography==42.0.7 --only-binary=:all:
+openai==1.12.0openai==2.7.1

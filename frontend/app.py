@@ -9,7 +9,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretflaskkey")
 
 # Load backend API base from environment
-BACKEND_API = os.getenv("BACKEND_API_BASE", "http://localhost:8000/api/v1")
+BACKEND_API = os.getenv("BACKEND_API_BASE", "http://localhost:8020/api/v1")
 
 @app.route("/")
 def index():
@@ -27,12 +27,12 @@ def query():
     """Send temporary query to backend and return response."""
     question = request.form.get("question")
     try:
-        res = requests.post(f"{BACKEND_API}/query", json={"question": question})
+        res = requests.post(f"{BACKEND_API}/respond", json={"query": question})
         if res.status_code == 200:
-            answer = res.json().get("answer", "No response")
-            return render_template("index.html", data={"status": "ok", "detail": answer})
+            data = res.json()
+            return render_template("index.html", data={"status": "ok", "detail": data.get("content", "No response")})
         else:
-            return render_template("index.html", data={"status": "error", "detail": "Backend error"})
+            return render_template("index.html", data={"status": "error", "detail": f"Backend responded with {res.status_code}"})
     except Exception as e:
         return render_template("index.html", data={"status": "error", "detail": str(e)})
 

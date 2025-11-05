@@ -6,7 +6,13 @@
     <style>
       body {
         font-family: Arial, sans-serif;
-        margin: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        text-align: center;
+        margin: 0;
       }
       .status {
         padding: 10px 20px;
@@ -21,25 +27,240 @@
         background-color: #ffdddd;
         color: #660000;
       }
+      /* Markdown rendering styles */
+      #aiResponse {
+        text-align: left;
+        background-color: #fafafa;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 15px;
+        margin-top: 15px;
+        width: 60%;
+        font-size: 1em;
+        line-height: 1.5;
+      }
+      #aiResponse code {
+        background-color: #eee;
+        color: #d63384;
+        padding: 2px 4px;
+        border-radius: 4px;
+        font-family: Menlo, monospace;
+      }
+      #aiResponse pre {
+        background-color: #272822;
+        color: #f8f8f2;
+        padding: 10px;
+        border-radius: 6px;
+        overflow-x: auto;
+      }
+      #aiResponse h1, #aiResponse h2, #aiResponse h3 {
+        color: #2c3e50;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 4px;
+      }
+      #aiResponse ul, #aiResponse ol {
+        margin-left: 1.5em;
+      }
     </style>
+    <!-- Include marked.js and DOMPurify for Markdown rendering and sanitization -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.2/dist/purify.min.js"></script>
   </head>
   <body>
-    <h1>MealCraft AI - Health Check</h1>
-    <p>Backend Status:
+    <h2>AI Assistant (Asynchronous)</h2>
+    <p>Ask MealCraft AI directly below. The response will appear instantly without reloading the page.</p>
+
+    <textarea id="userQuery" rows="3" style="width:60%;" placeholder="e.g., Suggest a high-protein vegan dinner idea"></textarea><br>
+    <button onclick="sendQuery()">Ask AI</button>
+    <button id="pairingButton" onclick="getBeveragePairings()" style="margin-left:10px;">Give me beverage pairings for this recipe</button>
+    <button id="dishButton" onclick="getDishPairings()" style="margin-left:10px;">Give me dish pairings for this recipe</button>
+
+    <div id="pairingResponse" style="border:1px solid #99ccff; margin-top:10px; padding:10px; width:60%; min-height:30px; background:#f0f8ff; display:none;"></div>
+    <div id="dishResponse" style="border:1px solid #ffcc99; margin-top:10px; padding:10px; width:60%; min-height:30px; background:#fff8f0; display:none;"></div>
+    <div id="aiResponse" style="border:1px solid #ccc; margin-top:10px; padding:10px; width:60%; min-height:30px;"></div>
+
+    <script>
+      async function sendQuery() {
+        const query = document.getElementById("userQuery").value.trim();
+        const responseBox = document.getElementById("aiResponse");
+
+        if (!query) {
+          responseBox.innerHTML = "⚠️ Please type a question.";
+          return;
+        }
+
+        const button = document.querySelector("button[onclick='sendQuery()']");
+        button.disabled = true;
+        button.textContent = "Processing...";
+        responseBox.style.color = "#333";
+        responseBox.innerHTML = "⏳ Generating response<span id='dots'></span>";
+
+        // Animated dots indicator
+        let dots = 0;
+        const interval = setInterval(() => {
+          dots = (dots + 1) % 4;
+          document.getElementById("dots").textContent = ".".repeat(dots);
+        }, 500);
+
+        try {
+          const res = await fetch("http://localhost:8020/api/v1/ai/respond", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query })
+          });
+
+          clearInterval(interval);
+          button.disabled = false;
+          button.textContent = "Ask AI";
+
+          if (!res.ok) {
+            throw new Error(`Server returned ${res.status}`);
+          }
+
+          const data = await res.json();
+          if (data.content) {
+            responseBox.style.color = "#006600";
+            const markdownHTML = DOMPurify.sanitize(marked.parse(data.content));
+            responseBox.innerHTML = `✅ <strong>(${data.type.toUpperCase()})</strong><hr>${markdownHTML}`;
+          } else if (data.detail) {
+            responseBox.style.color = "#cc6600";
+            responseBox.innerHTML = `⚠️ ${data.detail}`;
+          } else {
+            responseBox.style.color = "#cc6600";
+            responseBox.innerHTML = "⚠️ No response received from MealCraft AI.";
+          }
+        } catch (err) {
+          clearInterval(interval);
+          button.disabled = false;
+          button.textContent = "Ask AI";
+          responseBox.style.color = "#990000";
+          responseBox.innerHTML = `❌ Error: ${err.message}. Please try again later.`;
+        }
+      }
+
+      async function getBeveragePairings() {
+        const query = document.getElementById("userQuery").value.trim();
+        const pairingBox = document.getElementById("pairingResponse");
+
+        if (!query) {
+          pairingBox.style.display = "block";
+          pairingBox.innerHTML = "⚠️ Please enter a recipe name first.";
+          return;
+        }
+
+        const button = document.getElementById("pairingButton");
+        button.disabled = true;
+        button.textContent = "Fetching pairings...";
+        pairingBox.style.display = "block";
+        pairingBox.style.color = "#333";
+        pairingBox.innerHTML = "⏳ Generating beverage pairings<span id='dotsPair'></span>";
+
+        let dots = 0;
+        const interval = setInterval(() => {
+          dots = (dots + 1) % 4;
+          document.getElementById("dotsPair").textContent = ".".repeat(dots);
+        }, 500);
+
+        try {
+          const res = await fetch("http://localhost:8020/api/v1/ai/beverage-pairings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query })
+          });
+
+          clearInterval(interval);
+          button.disabled = false;
+          button.textContent = "Give me beverage pairings for this recipe";
+
+          if (!res.ok) {
+            throw new Error(`Server returned ${res.status}`);
+          }
+
+          const data = await res.json();
+          if (data.content) {
+            pairingBox.style.color = "#004080";
+            const markdownHTML = DOMPurify.sanitize(marked.parse(data.content));
+            pairingBox.innerHTML = `🍷 <strong>Beverage Pairings</strong><hr>${markdownHTML}`;
+          } else if (data.detail) {
+            pairingBox.style.color = "#cc6600";
+            pairingBox.innerHTML = `⚠️ ${data.detail}`;
+          } else {
+            pairingBox.style.color = "#cc6600";
+            pairingBox.innerHTML = "⚠️ No response received from MealCraft AI.";
+          }
+        } catch (err) {
+          clearInterval(interval);
+          button.disabled = false;
+          button.textContent = "Give me beverage pairings for this recipe";
+          pairingBox.style.color = "#990000";
+          pairingBox.innerHTML = `❌ Error: ${err.message}. Please try again later.`;
+        }
+      }
+
+      async function getDishPairings() {
+        const query = document.getElementById("userQuery").value.trim();
+        const dishBox = document.getElementById("dishResponse");
+
+        if (!query) {
+          dishBox.style.display = "block";
+          dishBox.innerHTML = "⚠️ Please enter a recipe name first.";
+          return;
+        }
+
+        const button = document.getElementById("dishButton");
+        button.disabled = true;
+        button.textContent = "Fetching dish pairings...";
+        dishBox.style.display = "block";
+        dishBox.style.color = "#333";
+        dishBox.innerHTML = "⏳ Generating dish pairings<span id='dotsDish'></span>";
+
+        let dots = 0;
+        const interval = setInterval(() => {
+          dots = (dots + 1) % 4;
+          document.getElementById("dotsDish").textContent = ".".repeat(dots);
+        }, 500);
+
+        try {
+          const res = await fetch("http://localhost:8020/api/v1/ai/dish-pairings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query })
+          });
+
+          clearInterval(interval);
+          button.disabled = false;
+          button.textContent = "Give me dish pairings for this recipe";
+
+          if (!res.ok) {
+            throw new Error(`Server returned ${res.status}`);
+          }
+
+          const data = await res.json();
+          if (data.content) {
+            dishBox.style.color = "#804000";
+            const markdownHTML = DOMPurify.sanitize(marked.parse(data.content));
+            dishBox.innerHTML = `🍽️ <strong>Dish Pairings</strong><hr>${markdownHTML}`;
+          } else if (data.detail) {
+            dishBox.style.color = "#cc6600";
+            dishBox.innerHTML = `⚠️ ${data.detail}`;
+          } else {
+            dishBox.style.color = "#cc6600";
+            dishBox.innerHTML = "⚠️ No response received from MealCraft AI.";
+          }
+        } catch (err) {
+          clearInterval(interval);
+          button.disabled = false;
+          button.textContent = "Give me dish pairings for this recipe";
+          dishBox.style.color = "#990000";
+          dishBox.innerHTML = `❌ Error: ${err.message}. Please try again later.`;
+        }
+      }
+    </script>
+  </body>
+</html>
+    <div style="font-size:0.8em; opacity:0.7; margin-top:30px;">
+      Backend Status:
       <span class="status {{ 'ok' if data.status == 'ok' else 'error' }}">
         {{ data.status }}
       </span>
-    </p>
-
-    <form method="POST" action="/query">
-      <label><strong>Ask a question:</strong></label><br>
-      <input type="text" name="question" style="width:60%;" required>
-      <button type="submit">Submit</button>
-    </form>
-
-    {% if data.detail %}
-        <h3>Response:</h3>
-        <p>{{ data.detail }}</p>
-    {% endif %}
-  </body>
-</html>
+    </div>

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.health import router as health_router
+from app.api.v1.ai import router as ai_router
 from app.core.database import connect_to_mongo, close_mongo_connection
 
 app = FastAPI(title="MealCraft AI Backend", version="0.1.0")
@@ -18,6 +19,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(health_router, prefix="/api/v1")
+app.include_router(ai_router, prefix="/api/v1/ai")
 
 # Replace all authentication behavior with a temporary session-free query handler
 from fastapi import Request
