@@ -6,6 +6,9 @@ sqlalchemy==2.0.32
 python-dotenv==1.0.1
 requests==2.31.0
 passlib[bcrypt]==1.7.4
-bcrypt==4.0.1 --only-binary=:all:
-cryptography==42.0.7 --only-binary=:all:
+bcrypt==4.0.1
+cryptography==42.0.7
+motor==3.7.1
+pymongo==4.15.3
+dnspython==2.8.0
 openai==2.7.1
