@@ -2,83 +2,34 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>MealCraft AI Health Check</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        text-align: center;
-        margin: 0;
-      }
-      .status {
-        padding: 10px 20px;
-        border-radius: 5px;
-        display: inline-block;
-      }
-      .ok {
-        background-color: #ddffdd;
-        color: #006600;
-      }
-      .error {
-        background-color: #ffdddd;
-        color: #660000;
-      }
-      /* Markdown rendering styles */
-      #aiResponse {
-        text-align: left;
-        background-color: #fafafa;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        padding: 15px;
-        margin-top: 15px;
-        width: 60%;
-        font-size: 1em;
-        line-height: 1.5;
-      }
-      #aiResponse code {
-        background-color: #eee;
-        color: #d63384;
-        padding: 2px 4px;
-        border-radius: 4px;
-        font-family: Menlo, monospace;
-      }
-      #aiResponse pre {
-        background-color: #272822;
-        color: #f8f8f2;
-        padding: 10px;
-        border-radius: 6px;
-        overflow-x: auto;
-      }
-      #aiResponse h1, #aiResponse h2, #aiResponse h3 {
-        color: #2c3e50;
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 4px;
-      }
-      #aiResponse ul, #aiResponse ol {
-        margin-left: 1.5em;
-      }
-    </style>
-    <!-- Include marked.js and DOMPurify for Markdown rendering and sanitization -->
+    <title>MealCraft AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.2/dist/purify.min.js"></script>
   </head>
   <body>
-    <h2>AI Assistant (Asynchronous)</h2>
-    <p>Ask MealCraft AI directly below. The response will appear instantly without reloading the page.</p>
+    <header>
+      <h2>MealCraft AI</h2>
+      <nav>
+        <!-- Navigation items for authentication and profile removed -->
+      </nav>
+    </header>
 
-    <textarea id="userQuery" rows="3" style="width:60%;" placeholder="e.g., Suggest a high-protein vegan dinner idea"></textarea><br>
-    <button onclick="sendQuery()">Ask AI</button>
-    <button id="pairingButton" onclick="getBeveragePairings()" style="margin-left:10px;">Give me beverage pairings for this recipe</button>
-    <button id="dishButton" onclick="getDishPairings()" style="margin-left:10px;">Give me dish pairings for this recipe</button>
+    <section class="hero">
+      <h1>Welcome to MealCraft AI</h1>
+      <p>Discover intelligent meal suggestions and perfect pairings with our sleek AI-driven experience.</p>
 
-    <div id="pairingResponse" style="border:1px solid #99ccff; margin-top:10px; padding:10px; width:60%; min-height:30px; background:#f0f8ff; display:none;"></div>
-    <div id="dishResponse" style="border:1px solid #ffcc99; margin-top:10px; padding:10px; width:60%; min-height:30px; background:#fff8f0; display:none;"></div>
-    <div id="aiResponse" style="border:1px solid #ccc; margin-top:10px; padding:10px; width:60%; min-height:30px;"></div>
+      <div style="margin-top:2rem;">
+        <textarea id="userQuery" rows="3" style="width:60%;" placeholder="e.g., Suggest a high-protein vegan dinner idea"></textarea><br>
+        <button onclick="sendQuery()">Ask AI</button>
+        <button id="pairingButton" onclick="getBeveragePairings()" disabled>Drink Pairings</button>
+        <button id="dishButton" onclick="getDishPairings()" disabled>Dish Pairings</button>
+      </div>
 
+      <div id="pairingResponse" class="response-box" style="display:none;"></div>
+      <div id="dishResponse" class="response-box" style="display:none;"></div>
+      <div id="aiResponse" class="response-box"></div>
+    </section>
     <script>
       async function sendQuery() {
         const query = document.getElementById("userQuery").value.trim();
@@ -92,7 +43,7 @@
         const button = document.querySelector("button[onclick='sendQuery()']");
         button.disabled = true;
         button.textContent = "Processing...";
-        responseBox.style.color = "#333";
+        responseBox.style.color = "#1e90ff";
         responseBox.innerHTML = "⏳ Generating response<span id='dots'></span>";
 
         // Animated dots indicator
@@ -119,9 +70,12 @@
 
           const data = await res.json();
           if (data.content) {
-            responseBox.style.color = "#006600";
+            responseBox.style.color = "#ffffff";
             const markdownHTML = DOMPurify.sanitize(marked.parse(data.content));
             responseBox.innerHTML = `✅ <strong>(${data.type.toUpperCase()})</strong><hr>${markdownHTML}`;
+            // Enable other buttons after successful AI response
+            document.getElementById("pairingButton").disabled = false;
+            document.getElementById("dishButton").disabled = false;
           } else if (data.detail) {
             responseBox.style.color = "#cc6600";
             responseBox.innerHTML = `⚠️ ${data.detail}`;
@@ -178,7 +132,7 @@
 
           const data = await res.json();
           if (data.content) {
-            pairingBox.style.color = "#004080";
+            pairingBox.style.color = "#ffffff";
             const markdownHTML = DOMPurify.sanitize(marked.parse(data.content));
             pairingBox.innerHTML = `🍷 <strong>Beverage Pairings</strong><hr>${markdownHTML}`;
           } else if (data.detail) {
@@ -237,7 +191,7 @@
 
           const data = await res.json();
           if (data.content) {
-            dishBox.style.color = "#804000";
+            dishBox.style.color = "#ffffff";
             const markdownHTML = DOMPurify.sanitize(marked.parse(data.content));
             dishBox.innerHTML = `🍽️ <strong>Dish Pairings</strong><hr>${markdownHTML}`;
           } else if (data.detail) {

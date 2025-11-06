@@ -1,18 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <title>Profile | MealCraftAI</title>
-</head>
-<body>
-    <h1>Profile</h1>
-    {% if error %}
-        <p style="color:red;">{{ error }}</p>
-    {% elif user %}
-        <p>Welcome, <strong>{{ user.email }}</strong>!</p>
-        <a href="{{ url_for('logout') }}">Logout</a>
-    {% else %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <header>
+      <h2>MealCraft AI</h2>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/logout">Logout</a>
+      </nav>
+    </header>
+
+    <section class="profile-container">
+      <h1>Your Profile</h1>
+      {% if error %}
+        <p style="color:#ff6666;">{{ error }}</p>
+      {% elif user %}
+        <div class="profile-card">
+          <p>Welcome, <strong>{{ user.email }}</strong>!</p>
+          <a class="btn" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+      {% else %}
         <p>No user data found.</p>
-    {% endif %}
-</body>
+      {% endif %}
+    </section>
+
+    <footer>
+      <p>&copy; 2025 MealCraft AI</p>
+    </footer>
+  </body>
 </html>

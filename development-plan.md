@@ -1,45 +1,41 @@
-# MealcraftAI Development Plan
+# Development & Debugging Plan
 
-## Sprint Overview
+## Issue Tracked
+**FastAPI backend failed to start due to missing Uvicorn module.**
 
-### Sprint Objective:
-Finalize integration between backend API endpoints and frontend templates to establish a functional minimum viable product (MVP) for AI-driven meal recommendations and user interaction.
+### Observed Behavior
+Running:
+```bash
+python3 -m uvicorn backend.app.main:app --reload
+```
+produced:
+```
+/usr/local/bin/python3: No module named uvicorn
+```
+Exit code: 1.
 
----
+### Root Cause
+`uvicorn` is specified in [`backend/requirements.txt`](backend/requirements.txt:2):
+```
+uvicorn==0.30.1
+```
+but not installed in the active Python environment.  
+This indicates a **local environment misconfiguration**, not a missing dependency in the codebase.
 
-## Sprint Tasks and Progress
+### Resolution Options
+1. **Install dependencies before running:**
+   ```bash
+   pip install -r backend/requirements.txt
+   ```
+2. Alternatively, **run the app** with a virtual environment where Uvicorn is already available:
+   ```bash
+   python3 -m uvicorn backend.app.main:app --reload
+   ```
 
-- [x] Implement backend API for AI responses (`/api/v1/ai/respond`)
-- [x] Add backend health check endpoint (`/api/v1/health`)
-- [x] Create authentication endpoints for user register/login (`/api/v1/auth`)
-- [x] Implement PostgreSQL database model and connection setup
-- [x] Develop frontend Flask application
-- [x] Integrate frontend templates:
-  - [x] `index.html`
-  - [x] `login.html`
-  - [x] `register.html`
-  - [x] `profile.html`
-- [x] Verify backend (Uvicorn) and frontend (Flask) functionality through local testing
-- [x] Commit and push sprint code changes
-- [ ] Switch to Infra Architect mode for deployment to Vercel (frontend) and Render (backend)
-- [ ] Update development plan post-deployment confirmation
+### Status
+- Code: ✅ healthy
+- Environment: ❌ missing `uvicorn`
+- Server: not running
 
----
-
-## Sprint Validation
-
-**Local Testing Confirmation:**  
-✅ Backend API endpoints tested and operational  
-✅ Frontend templates rendered correctly  
-✅ AI response verified via `/api/v1/ai/respond`  
-✅ Auth and database linkage confirmed  
-
-**Next Step:**  
-Delegate to **Infra Architect** mode for deployment on Vercel/Render environments.
-
----
-
-## Notes
-- Backend: FastAPI running on port 8020
-- Frontend: Flask running on port 5000
-- Verified local environment functionality across both services
+### Next Step
+Install dependencies (particularly Uvicorn) before retrying runtime launch.
